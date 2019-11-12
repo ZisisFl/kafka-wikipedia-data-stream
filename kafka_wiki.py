@@ -1,16 +1,14 @@
 import json
 from sseclient import SSEClient as EventSource
-from time import sleep
-from json import dumps
 from kafka import KafkaProducer
 
 # init producer
 producer = KafkaProducer(bootstrap_servers=['localhost:9092'],
                          value_serializer=lambda x:
-                         dumps(x).encode('utf-8'))
+                         json.dumps(x).encode('utf-8'))
 
 # create a dictionary for the various known namespaces
-# https://en.wikipedia.org/wiki/Wikipedia:Namespace#Programming
+# more info https://en.wikipedia.org/wiki/Wikipedia:Namespace#Programming
 namespace_dict = {-2: 'Media', -1: 'Special', 0: 'main namespace', 1: 'Talk', 2: 'User', 3: 'User Talk',
                   4: 'Wikipedia', 5: 'Wikipedia Talk', 6: 'File', 7: 'File Talk',
                   8: 'MediaWiki', 9: 'MediaWiki Talk', 10: 'Template', 11: 'Template Talk', 12: 'Help',
@@ -20,7 +18,9 @@ namespace_dict = {-2: 'Media', -1: 'Special', 0: 'main namespace', 1: 'Talk', 2:
                   829: 'Module Talk', 2300: 'Gadget', 2301: 'Gadget Talk', 2302: 'Gadget definition',
                   2303: 'Gadget definition Talk'}
 
-data = ''
+# bot field dictionary
+user_dict = {True: 'bot', False: 'human'}
+
 # sse reader
 url = 'https://stream.wikimedia.org/v2/stream/recentchange'
 for event in EventSource(url):
@@ -30,14 +30,18 @@ for event in EventSource(url):
         except ValueError:
             pass
         else:
-            # keep only the article edits
+            # keep only the article edits (mediawiki.recentchange stream)
             if change['type'] == 'edit':
                 # use dictionary to change namespace value and catch any unknown namespaces (like ns 104)
                 try:
                     change['namespace'] = namespace_dict[change['namespace']]
                 except KeyError:
                     change['namespace'] = 'unknown'
-                # define the data structure of the json to put in kafka topic
+
+                # change bot field value to human or bot
+                change['bot'] = user_dict[change['bot']]
+
+                # define the data structure of the json to send to kafka topic
                 data = {"id": change['id'],
                         "namespace": change['namespace'],
                         "title": change['title'],
@@ -48,5 +52,5 @@ for event in EventSource(url):
                         "minor": change['minor'],
                         "old_length": change['length']['old'],
                         "new_length": change['length']['new']}
-                print(data)
+                # print(data)
                 producer.send('wikipedia-stream-sse', value=data)
