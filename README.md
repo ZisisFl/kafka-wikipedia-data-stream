@@ -4,16 +4,16 @@ This simple Python script makes use of the [EventStreams](https://wikitech.wikim
 We construct events that are sent to Kafka with the following format:
 ```json
 {
-'id': 1426354584, 
-'domain': 'www.wikidata.org', 
-'namespace': 'main namespace', 
-'title': 'articles_title', 
-'timestamp': '2021-03-14T21:55:14Z', 
-'user_name': 'a_user_name', 
-'user_type': 'human', 
-'minor': False, 
-'old_length': 6019, 
-'new_length': 8687
+"id": 1426354584, 
+"domain": "www.wikidata.org", 
+"namespace": "main namespace", 
+"title": "articles_title", 
+"timestamp": "2021-03-14T21:55:14Z", 
+"user_name": "a_user_name", 
+"user_type": "human", 
+"minor": False, 
+"old_length": 6019, 
+"new_length": 8687
 }
 ```
  
