@@ -41,7 +41,7 @@ def construct_event(event_data, user_types):
              "timestamp": event_data['meta']['dt'],#event_data['timestamp'],
              "user_name": event_data['user'],
              "user_type": user_type,
-             "minor": event_data['minor'],
+             #"minor": event_data['minor'],
              "old_length": event_data['length']['old'],
              "new_length": event_data['length']['new']}
     
