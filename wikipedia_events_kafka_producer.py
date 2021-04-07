@@ -9,10 +9,10 @@ def create_kafka_producer(host='localhost', port=9092):
     try:
         producer = KafkaProducer(bootstrap_servers='{}:{}'.format(host, port),
                                  value_serializer=lambda x: json.dumps(x).encode('utf-8'))
-    
     except NoBrokersAvailable:
         print('No broker found at {}:{}'.format(host, port))
-        exit(1)
+        raise
+    
     
     if producer.bootstrap_connected():
         print('Kafka producer connected!')
@@ -87,6 +87,8 @@ if __name__ == "__main__":
 
     # consume websocket
     url = 'https://stream.wikimedia.org/v2/stream/recentchange'
+    
+    print('Messages are being published to Kafka topic')
     for event in EventSource(url):
         if event.event == 'message':
             try:
