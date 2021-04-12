@@ -36,3 +36,5 @@ pip install -r requirements.txt
 ```sh
 python wikipedia_events_kafka_producer.py 
 ```
+
+You can find the complete tutorial [in this Medium article](https://towardsdatascience.com/introduction-to-apache-kafka-with-wikipedias-eventstreams-service-d06d4628e8d9).
