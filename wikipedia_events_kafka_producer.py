@@ -1,16 +1,17 @@
 import json
+import argparse
 from sseclient import SSEClient as EventSource
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
 
 
 # https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html
-def create_kafka_producer(host='localhost', port=9092):
+def create_kafka_producer(bootstrap_server):
     try:
-        producer = KafkaProducer(bootstrap_servers='{}:{}'.format(host, port),
+        producer = KafkaProducer(bootstrap_servers=bootstrap_server,
                                  value_serializer=lambda x: json.dumps(x).encode('utf-8'))
     except NoBrokersAvailable:
-        print('No broker found at {}:{}'.format(host, port))
+        print('No broker found at {}'.format(bootstrap_server))
         raise
     
     
@@ -74,10 +75,22 @@ def init_namespaces():
     return namespace_dict
 
 
+def parse_command_line_arguments():
+    parser = argparse.ArgumentParser(description='EventStreams Kafka producer')
+
+    parser.add_argument('--bootstrap_server', default='localhost:9092', help='Kafka bootstrap broker(s) (host[:port])', type=str)
+    parser.add_argument('--topic_name', default='wikipedia-events', help='Destination topic name', type=str)
+    parser.add_argument('--events_to_produce', help='Kill producer after n events have been produced', type=int, default=1000)
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
+    # parse command line arguments
+    args = parse_command_line_arguments()
+
     # init producer
-    producer = create_kafka_producer()
+    producer = create_kafka_producer(args.bootstrap_server)
 
     # init dictionary of namespaces
     namespace_dict = init_namespaces()
@@ -89,6 +102,8 @@ if __name__ == "__main__":
     url = 'https://stream.wikimedia.org/v2/stream/recentchange'
     
     print('Messages are being published to Kafka topic')
+    messages_count = 0
+    
     for event in EventSource(url):
         if event.event == 'message':
             try:
@@ -102,3 +117,9 @@ if __name__ == "__main__":
                     event_to_send = construct_event(event_data, user_types)
 
                     producer.send('wikipedia-events', value=event_to_send)
+
+                    messages_count += 1
+        
+        if messages_count >= args.events_to_produce:
+            print('Producer will be killed as {} events were producted'.format(args.events_to_produce))
+            exit(0)

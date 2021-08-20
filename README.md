@@ -15,16 +15,15 @@ We construct events that are sent to Kafka with the following format:
 "new_length": 8687
 }
 ```
- 
 
-### In order to reproduce this project ###
+## In order to reproduce this project ##
 - Start a Kafka Broker at localhost:9092.
 - Create a topic named **wikipedia-events**
 
 More info on how to start up Kafka Broker create a topic, produce messages and consume them can be found [here](https://kafka.apache.org/quickstart).
 
-
-- Create a Python 3 virtual environment installing all needed libraries using requirements.txt file included in this project:
+### Run without Docker ###
+Create a Python 3 virtual environment installing all needed libraries using requirements.txt file included in this project:
 
 ```sh
 python3 -m venv kafka_venv
@@ -32,9 +31,34 @@ source kafka_venv/bin/activate
 pip install -r requirements.txt
 ```
 
-- Εxecute the wikipedia_events_kafka_producer.py file
+Εxecute the wikipedia_events_kafka_producer.py file
 ```sh
 python wikipedia_events_kafka_producer.py 
 ```
 
+You can pass arguments in order to change the limit of events to produce, host and port of kafka broker and destination topic, for more info:
+```sh
+python wikipedia_events_kafka_producer.py -h
+```
+
+### Run with Docker ###
+Build docker image:
+```sh
+docker build -t wikipedia_events_kafka_producer .
+```
+
+Run docker app:
+```sh
+docker run --network="host" wikipedia_events_kafka_producer
+```
+
+You can provide your arguments like that:
+```sh
+docker run --network="host" wikipedia_events_kafka_producer --events_to_produce=10000
+```
+
+**Note:** It is important to use `--network="host"` option in order to point the container to the docker host.
+
+
+## Medium article ##
 You can find the complete tutorial [in this Medium article](https://towardsdatascience.com/introduction-to-apache-kafka-with-wikipedias-eventstreams-service-d06d4628e8d9).
